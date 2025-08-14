@@ -14,64 +14,66 @@
 <button id="compressBtn" style="background:green;color:white;">Compress</button>
 <div id="compressStatus" style="margin-top:12px;color:#333;"></div>
 
-<!-- Load Libraries -->
-<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-<script src="https://unpkg.com/pdfjs-dist/build/pdf.min.js"></script>
+<!-- Load Libraries with defer so they finish before script runs -->
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js" defer></script>
+<script src="https://unpkg.com/pdfjs-dist/build/pdf.min.js" defer></script>
+<script src="https://unpkg.com/pdfjs-dist/build/pdf.worker.min.js" defer></script>
 
-<script>
-// Set PDF.js worker
-if (window.pdfjsLib) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist/build/pdf.worker.min.js';
-}
-
-document.getElementById('compressBtn').addEventListener('click', async () => {
-    const fileInput = document.getElementById('compressFile');
-    const quality = parseFloat(document.getElementById('quality').value);
-    const status = document.getElementById('compressStatus');
-
-    if (!fileInput.files.length) {
-        status.textContent = 'Please choose a PDF file.';
-        return;
+<script defer>
+window.addEventListener('DOMContentLoaded', () => {
+    if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist/build/pdf.worker.min.js';
     }
 
-    try {
-        status.textContent = 'Processing...';
+    document.getElementById('compressBtn').addEventListener('click', async () => {
+        const fileInput = document.getElementById('compressFile');
+        const quality = parseFloat(document.getElementById('quality').value);
+        const status = document.getElementById('compressStatus');
 
-        const file = fileInput.files[0];
-        const arrayBuffer = await file.arrayBuffer();
-
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const { PDFDocument } = PDFLib;
-        const newPdf = await PDFDocument.create();
-
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const viewport = page.getViewport({ scale: 1 });
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-
-            await page.render({ canvasContext: ctx, viewport }).promise;
-
-            const imgData = canvas.toDataURL('image/jpeg', quality);
-            const img = await newPdf.embedJpg(imgData);
-            const pdfPage = newPdf.addPage([viewport.width, viewport.height]);
-            pdfPage.drawImage(img, { x: 0, y: 0, width: viewport.width, height: viewport.height });
+        if (!fileInput.files.length) {
+            status.textContent = 'Please choose a PDF file.';
+            return;
         }
 
-        const pdfBytes = await newPdf.save();
-        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'compressed.pdf';
-        link.click();
+        try {
+            status.textContent = 'Processing...';
 
-        status.textContent = 'Compression complete!';
-    } catch (err) {
-        console.error(err);
-        status.textContent = 'Error: ' + err.message;
-    }
+            const file = fileInput.files[0];
+            const arrayBuffer = await file.arrayBuffer();
+
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const { PDFDocument } = PDFLib;
+            const newPdf = await PDFDocument.create();
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 1 });
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                await page.render({ canvasContext: ctx, viewport }).promise;
+
+                const imgData = canvas.toDataURL('image/jpeg', quality);
+                const img = await newPdf.embedJpg(imgData);
+                const pdfPage = newPdf.addPage([viewport.width, viewport.height]);
+                pdfPage.drawImage(img, { x: 0, y: 0, width: viewport.width, height: viewport.height });
+            }
+
+            const pdfBytes = await newPdf.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'compressed.pdf';
+            link.click();
+
+            status.textContent = 'Compression complete!';
+        } catch (err) {
+            console.error(err);
+            status.textContent = 'Error: ' + err.message;
+        }
+    });
 });
 </script>
 {% endblock %}
