@@ -1,14 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Free PDF to Word Converter</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <h1>Convert PDF to Word</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="pdf_file" accept="application/pdf" required>
-        <button type="submit">Convert</button>
-    </form>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<h2>Welcome to PDF Toolbox (Client-side)</h2>
+<p>Tools included in this package (all run in the user's browser):</p>
+<ul>
+  <li><a href="{{ url_for('merge') }}">Merge PDFs</a></li>
+  <li><a href="{{ url_for('split') }}">Split PDF (download pages)</a></li>
+  <li><a href="{{ url_for('compress') }}">Compress PDF (image-heavy PDFs)</a></li>
+  <li><a href="{{ url_for('password') }}">Password protect / remove (placeholder)</a></li>
+  <li><a href="{{ url_for('pdf2word') }}">PDF → Word (text-first, .doc with HTML)</a></li>
+</ul>
+<p>Instructions: copy the <code>templates/</code> and <code>static/js/</code> files into your repo, add routes to <code>app.py</code> (snippet in README), then commit & push to GitHub.</p>
+{% endblock %}

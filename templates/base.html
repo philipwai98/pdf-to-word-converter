@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PDF Toolbox</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header style="padding:12px;background:#0b1220;color:white;">
+  <div style="max-width:900px;margin:0 auto;display:flex;gap:12px;align-items:center;">
+    <h1 style="margin:0;font-size:18px;">PDF Toolbox</h1>
+    <nav style="margin-left:auto;">
+      <a href="{{ url_for('home') }}" style="color:#cfd8e3;margin-right:10px;">Home</a>
+      <a href="{{ url_for('merge') }}" style="color:#cfd8e3;margin-right:10px;">Merge</a>
+      <a href="{{ url_for('split') }}" style="color:#cfd8e3;margin-right:10px;">Split</a>
+      <a href="{{ url_for('compress') }}" style="color:#cfd8e3;margin-right:10px;">Compress</a>
+      <a href="{{ url_for('password') }}" style="color:#cfd8e3;margin-right:10px;">Password</a>
+      <a href="{{ url_for('pdf2word') }}" style="color:#cfd8e3;">PDF→Word</a>
+    </nav>
+  </div>
+</header>
+<main style="max-width:900px;margin:18px auto;padding:12px;">
+  {% block content %}{% endblock %}
+</main>
+<footer style="text-align:center;color:#666;padding:18px 0;">
+  Built with client-side JS — files are processed in your browser.
+</footer>
+</body>
+</html>
