@@ -1,16 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
+
 <h2>PDF → Word (text-first)</h2>
-<p>This tool extracts text from a PDF (best for text PDFs) and creates a simple .doc file (HTML inside) that Microsoft Word can open. It does not preserve complex layout or exact formatting.</p>
+<p>
+  This tool extracts text from a PDF (best for text PDFs) and creates a simple .doc file (HTML inside)
+  that Microsoft Word can open. It does not preserve complex layout or exact formatting.
+</p>
+
 <input id="pdf2wordFile" type="file" accept="application/pdf" />
 <button id="pdf2wordBtn">Convert to .doc</button>
 <div id="pdf2wordStatus" style="margin-top:12px;color:#333;"></div>
 
-<script src="https://unpkg.com/pdfjs-dist/build/pdf.min.js"></script>
+<!-- Load PDF.js from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 <script>
-if (window.pdfjsLib) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist/build/pdf.worker.min.js';
-}
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
 </script>
+
+<!-- Your PDF to Word conversion script -->
 <script src="{{ url_for('static', filename='js/pdf2word.js') }}"></script>
+
 {% endblock %}
