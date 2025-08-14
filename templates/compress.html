@@ -1,19 +1,77 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Compress PDF (rasterize pages and re-embed)</h2>
-<p>Note: this approach rasterizes pages, which reduces vector fidelity but often dramatically reduces size for image-heavy PDFs.</p>
+<p>
+    Note: this approach rasterizes pages, which reduces vector fidelity but can
+    dramatically reduce size for image-heavy PDFs.
+</p>
+
 <input id="compressFile" type="file" accept="application/pdf" />
-<label>Quality (0.1 - 1.0): <input id="quality" type="range" min="0.1" max="1.0" step="0.1" value="0.7" /></label>
-<button id="compressBtn">Compress</button>
+<label>
+    Quality (0.1 – 1.0):
+    <input id="quality" type="range" min="0.1" max="1.0" step="0.1" value="0.7" />
+</label>
+<button id="compressBtn" style="background:green;color:white;">Compress</button>
 <div id="compressStatus" style="margin-top:12px;color:#333;"></div>
 
+<!-- Load Libraries -->
 <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 <script src="https://unpkg.com/pdfjs-dist/build/pdf.min.js"></script>
+
 <script>
-// point pdf.js to worker (CDN)
+// Set PDF.js worker
 if (window.pdfjsLib) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist/build/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist/build/pdf.worker.min.js';
 }
+
+document.getElementById('compressBtn').addEventListener('click', async () => {
+    const fileInput = document.getElementById('compressFile');
+    const quality = parseFloat(document.getElementById('quality').value);
+    const status = document.getElementById('compressStatus');
+
+    if (!fileInput.files.length) {
+        status.textContent = 'Please choose a PDF file.';
+        return;
+    }
+
+    try {
+        status.textContent = 'Processing...';
+
+        const file = fileInput.files[0];
+        const arrayBuffer = await file.arrayBuffer();
+
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const { PDFDocument } = PDFLib;
+        const newPdf = await PDFDocument.create();
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 1 });
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            await page.render({ canvasContext: ctx, viewport }).promise;
+
+            const imgData = canvas.toDataURL('image/jpeg', quality);
+            const img = await newPdf.embedJpg(imgData);
+            const pdfPage = newPdf.addPage([viewport.width, viewport.height]);
+            pdfPage.drawImage(img, { x: 0, y: 0, width: viewport.width, height: viewport.height });
+        }
+
+        const pdfBytes = await newPdf.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'compressed.pdf';
+        link.click();
+
+        status.textContent = 'Compression complete!';
+    } catch (err) {
+        console.error(err);
+        status.textContent = 'Error: ' + err.message;
+    }
+});
 </script>
-<script src="{{ url_for('static', filename='js/compress.js') }}"></script>
 {% endblock %}
